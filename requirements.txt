@@ -1,0 +1,6 @@
+pyTelegramBotAPI
+schedule
+sqlalchemy
+sqlalchemy-utils
+psycopg2-binary
+emoji
