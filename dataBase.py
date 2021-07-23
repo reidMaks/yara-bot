@@ -23,17 +23,27 @@ class Event(Base):
     id = Column(Integer, primary_key=True)
     type = Column(Enum("eat", "sleep", "shit", "walk", name="event_type", create_type=False))
     time = Column(DateTime)
+    end_time = Column(DateTime)
     value = Column(Integer)
     comment = Column(String)
 
-    def __init__(self, type, time=datetime.datetime.now(), value=0, comment=''):
+    def __init__(self, type, time=None, value=0, comment=''):
         self.type = type
-        self.time = time
+        if time is None:
+            self.time = datetime.datetime.now()
+        else:
+            self.time = time
         self.value = value
         self.comment = comment
 
     def __repr__(self):
-        return "<Event('%s','%s', '%s')>" % (self.type, self.value, self.comment)
+        return "Событие (%s, %s, %s, %s)" % (format(self.time, '%d.%m %H:%M'), self.type, self.value, self.comment)
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    def __setitem__(self, key, value):
+        return setattr(self, key, value)
 
 
 Base.metadata.create_all(engine)
