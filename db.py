@@ -1,21 +1,16 @@
-import os
+from config import PG_PWD, PG_SRV, PG_USER
 import datetime
 from sqlalchemy import Column, Integer, String, create_engine, DateTime, Enum
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import sessionmaker
 
-pg_user = os.environ.get('PG_USER', '')
-pg_pwd = os.environ.get('PG_PWD', '')
-pg_srv = os.environ.get('PG_SRV', '')
-
-engine = create_engine(f"postgresql://{pg_user}:{pg_pwd}@{pg_srv}/yara-bd", echo=True)
+engine = create_engine(f"postgresql://{PG_USER}:{PG_PWD}@{PG_SRV}/yara-bd", echo=True)
 if not database_exists(engine.url):
     create_database(engine.url)
 
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
-session = Session()
 
 
 class Event(Base):
@@ -47,3 +42,4 @@ class Event(Base):
 
 
 Base.metadata.create_all(engine)
+
