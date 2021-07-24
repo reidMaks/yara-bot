@@ -1,25 +1,24 @@
-import os
+from config import BOT_TOKEN, OWNERS
 import datetime
-from parser import STType
-
 import telebot
 from telebot import types
-from dataBase import Event, session
+from repository import EventManager, Event
 
-bot = telebot.TeleBot(os.environ.get('TG_BOT_TOKEN', None))
-OWNERS = os.environ.get('OWNER_ID', [])
 EAT_BTN = '🍼Еда'
 SLEEP_BTN = '😴 Сон'
 WALK_BTN = '🚶 Прогулка'
 SHIT_BTN = '💩 О мой б-г, это случилось'
 STAT_BTN = '📈 Статистика'
 
-# Буфер используется для хранения данных от редактируемом событии на время ожидания пользовательского ввода
+bot = telebot.TeleBot(BOT_TOKEN)
+EventManager = EventManager()
+# Буфер используется для хранения данных от редактируемом событии
+# на время ожидания пользовательского ввода
 call_buffer = ''
 
 
 def eat_btn_on_click(message):
-    record = save_event(Event("eat"))
+    record = EventManager.save_event(Event("eat"))
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
 
@@ -30,7 +29,7 @@ def eat_btn_on_click(message):
 
 
 def sleep_btn_on_click(message):
-    record = save_event(Event("sleep"))
+    record = EventManager.save_event(Event("sleep"))
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
 
@@ -44,7 +43,7 @@ def sleep_btn_on_click(message):
 
 
 def walk_btn_on_click(message):
-    record = save_event(Event("walk"))
+    record = EventManager.save_event(Event("walk"))
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
 
@@ -58,7 +57,7 @@ def walk_btn_on_click(message):
 
 
 def shit_btn_on_click(message):
-    record = save_event(Event("shit"))
+    record = EventManager.save_event(Event("shit"))
 
     bot.send_message(text=f"""{record}\n
         Это определенно успех!""",
@@ -78,17 +77,9 @@ def stat_btn_on_click(message):
                      chat_id=message.chat.id, reply_markup=markup)
 
 
-def save_event(event):
-    session.add(event)
-    session.commit()
-
-    return session.query(Event).filter_by(time=event.time).first()
-
-
 def update_event_record(message):
     global call_buffer
     record_id, field_name = call_buffer.split(',')
-    record = session.query(Event).filter_by(id=record_id).first()
 
     if field_name == 'value':
         value = int(message.text)  # todo: Добавить проверку пользовательского ввода
@@ -99,9 +90,7 @@ def update_event_record(message):
     else:
         raise Exception('Получено не корректное значение value для события')
 
-    record[field_name] = value
-
-    save_event(record)
+    EventManager.update_event(record_id, {field_name: value})
     call_buffer = ''
 
 
@@ -119,7 +108,9 @@ def get_end_time_btn(record_id):
 
 def get_statistic(call_back):
     if 'how-many-shit' in call_back.data:
-        result = session.query(Event).filter(Event.type == 'shit', Event.time <= datetime.datetime.today())
+        result = EventManager.query(). \
+            filter(Event.type == 'shit', Event.time <= datetime.datetime.today()) \
+            .order_by(Event.time.desc())
         answer = ''
         if result is None:
             answer = \
@@ -127,9 +118,9 @@ def get_statistic(call_back):
                 Последняя запись """
         else:
             answer = \
-                f"""За сегодня {result.count()} раз(-а)"""
+                f"""За сегодня {result.count()} раз(-а), Последний в {format(result[0].time, '%H:%M')}"""
 
-        bot.answer_callback_query(call_back.id, answer)
+        bot.send_message(call_back.message.chat.id, answer)
 
 
 keyboard_mapper = {
@@ -154,12 +145,12 @@ def callback_query(call):
         get_statistic(call)
 
 
-@bot.message_handler(func=lambda message: its_master(message.chat.id) and keyboard_mapper.get(message.text) is not None)
+@bot.message_handler(func=lambda message: is_master(message.chat.id) and keyboard_mapper.get(message.text) is not None)
 def keyboard_btn(message):
     keyboard_mapper[message.text](message)
 
 
-@bot.message_handler(func=lambda message: its_master(message.chat.id))
+@bot.message_handler(func=lambda message: is_master(message.chat.id))
 def set_keyboard(message):
     markup = types.ReplyKeyboardMarkup(row_width=1)
 
@@ -172,9 +163,6 @@ def set_keyboard(message):
     bot.send_message(text='Здоров', chat_id=message.chat.id, reply_markup=markup)
 
 
-def its_master(user_id):
+def is_master(user_id):
     return OWNERS.find(str(user_id)) >= 0
 
-
-if __name__ == 'bot':
-    bot.polling(none_stop=True)
