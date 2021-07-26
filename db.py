@@ -1,11 +1,13 @@
-from config import PG_PWD, PG_SRV, PG_USER
+from config import DB_URL
 import datetime
-from sqlalchemy import Column, Integer, String, create_engine, DateTime, Enum
+from sqlalchemy import Column, Integer, String, create_engine, DateTime, Enum, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine(f"postgresql://{PG_USER}:{PG_PWD}@{PG_SRV}/yara-bd", echo=True)
+__all__ = ["Event", "User"]
+
+engine = create_engine(DB_URL, echo=True)
 if not database_exists(engine.url):
     create_database(engine.url)
 
@@ -41,5 +43,19 @@ class Event(Base):
         return setattr(self, key, value)
 
 
-Base.metadata.create_all(engine)
+class User(Base):
+    __tablename__ = 'users'
+    tg_id = Column(Integer, primary_key=True)
+    name = Column(String)
+    is_master = Column(Boolean)
+
+    def __repr__(self):
+        return "Пользователь (%s, %s)" % (self.tg_id, self.name)
+
+    def __getitem__(self, key):
+        return getattr(self, key)
+
+    def __setitem__(self, key, value):
+        return setattr(self, key, value)
+
 
