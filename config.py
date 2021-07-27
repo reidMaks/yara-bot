@@ -15,5 +15,5 @@ PG_SRV = os.environ.get('PG_SRV', '')
 if not isProduction():
     DB_URL = f"postgresql://{PG_USER}:{PG_PWD}@{PG_SRV}/yara-bd"
 else:
-    DB_URL = os.environ.get("DATABASE_URL", None)
+    DB_URL = os.environ.get("DATABASE_URL", None).replace("postgres", "postgresql", 1)
 
