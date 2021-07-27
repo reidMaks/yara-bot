@@ -2,12 +2,13 @@ from config import BOT_TOKEN, OWNERS
 import datetime
 import telebot
 from telebot import types
-from repository import EventManager, Event
+from repository import EventManager, Event, statistic
 
 EAT_BTN = '🍼Еда'
 SLEEP_BTN = '😴 Сон'
 WALK_BTN = '🚶 Прогулка'
 SHIT_BTN = '💩 О мой б-г, это случилось'
+BATH_BTN = '🛁 Купание'
 STAT_BTN = '📈 Статистика'
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -64,14 +65,22 @@ def shit_btn_on_click(message):
                      chat_id=message.chat.id)
 
 
+def bath_btn_on_click(message):
+    record = EventManager.save_event(Event("bath"))
+
+    bot.send_message(text=f"""{record}\n
+        С легким паром!""",
+                     chat_id=message.chat.id)
+
+
 def stat_btn_on_click(message):
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
 
-    markup.add(types.InlineKeyboardButton("Когда кушать?", callback_data='statistic'))
-    markup.add(types.InlineKeyboardButton("Сколько раз покакали?", callback_data='statistic,how-many-shit'))
-    markup.add(types.InlineKeyboardButton("Сколько съели сегодня?", callback_data='statistic'))
-    markup.add(types.InlineKeyboardButton("Вчера купались?", callback_data='statistic'))
+    markup.add(types.InlineKeyboardButton("Как давно кушали?", callback_data='statistic, how-long-ago,,eat'))
+    markup.add(types.InlineKeyboardButton("Сколько раз покакали?", callback_data='statistic,how-many,today,shit'))
+    markup.add(types.InlineKeyboardButton("Сколько съели сегодня?", callback_data='statistic,how-much,today,eat'))
+    markup.add(types.InlineKeyboardButton("Вчера купались?", callback_data='statistic,have,yesterday,bath'))
 
     bot.send_message(text='Что интересует?',
                      chat_id=message.chat.id, reply_markup=markup)
@@ -107,18 +116,11 @@ def get_end_time_btn(record_id):
 
 
 def get_statistic(call_back):
-    if 'how-many-shit' in call_back.data:
-        result = EventManager.query(). \
-            filter(Event.type == 'shit', Event.time <= datetime.datetime.today()) \
-            .order_by(Event.time.desc())
-        answer = ''
-        if result is None:
-            answer = \
-                f"""За сегодня нет записей
-                Последняя запись """
-        else:
-            answer = \
-                f"""За сегодня {result.count()} раз(-а), Последний в {format(result[0].time, '%H:%M')}"""
+    if 'statistic' in call_back.data:
+        answer = statistic(call_back.data)
+
+        if answer is None:
+            answer = 'Не знаю ;('
 
         bot.send_message(call_back.message.chat.id, answer)
 
@@ -128,7 +130,8 @@ keyboard_mapper = {
     SLEEP_BTN: sleep_btn_on_click,
     WALK_BTN: walk_btn_on_click,
     SHIT_BTN: shit_btn_on_click,
-    STAT_BTN: stat_btn_on_click
+    STAT_BTN: stat_btn_on_click,
+    BATH_BTN: bath_btn_on_click
 }
 
 
@@ -158,6 +161,7 @@ def set_keyboard(message):
     markup.add(types.KeyboardButton(SLEEP_BTN))
     markup.add(types.KeyboardButton(WALK_BTN))
     markup.add(types.KeyboardButton(SHIT_BTN))
+    markup.add(types.KeyboardButton(BATH_BTN))
     markup.add(types.KeyboardButton(STAT_BTN))
 
     bot.send_message(text='Здоров', chat_id=message.chat.id, reply_markup=markup)

@@ -1,5 +1,6 @@
 from config import DB_URL
 import datetime
+import enum
 from sqlalchemy import Column, Integer, String, create_engine, DateTime, Enum, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils import database_exists, create_database
@@ -15,10 +16,18 @@ Base = declarative_base()
 Session = sessionmaker(bind=engine)
 
 
+class EventType(enum.Enum):
+    eat = 'eat'
+    sleep = 'sleep'
+    shit = 'shit'
+    walk = 'walk'
+    bath = 'bath'
+
+
 class Event(Base):
     __tablename__ = 'events'
     id = Column(Integer, primary_key=True)
-    type = Column(Enum("eat", "sleep", "shit", "walk", name="event_type", create_type=False))
+    type = Column(Enum(EventType))
     time = Column(DateTime)
     end_time = Column(DateTime)
     value = Column(Integer)
@@ -57,5 +66,3 @@ class User(Base):
 
     def __setitem__(self, key, value):
         return setattr(self, key, value)
-
-
