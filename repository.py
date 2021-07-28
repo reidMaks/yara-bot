@@ -19,16 +19,19 @@ def statistic(callback_data: str) -> Union[str, int, bool, timedelta, None]:
     if event_type not in EventType.__members__:
         return None
 
+    today = datetime.today()
     if time == 'today':
-        time = datetime.today()
+        #todo: Вынести в аналог началоДня() или найти готовый
+        time = today - timedelta(hours=today.hour, minutes=today.minute, seconds=today.second)
     elif time == 'yesterday':
-        time = datetime.today() - timedelta(days=1)
+
+        time = today - timedelta(days=1, hours=today.hour, minutes=today.minute, seconds=today.second)
     else:
         time = datetime(1, 1, 1)
 
     session = next(get_session())
     result = session.query(Event) \
-        .filter(Event.type == event_type, Event.time <= time) \
+        .filter(Event.type == event_type, Event.time >= time) \
         .order_by(Event.time.desc())
 
     if result.count() == 0:
@@ -42,9 +45,12 @@ def statistic(callback_data: str) -> Union[str, int, bool, timedelta, None]:
 
         if question == 'have':
             return True
-
-        if question == 'how-long-ago':
-            return datetime.today() - max(record.time, record.end_time)
+        elif question == 'how-long-ago':
+            if record.end_time is not None:
+                delta = datetime.today() - max(record.time, record.end_time)
+            else:
+                delta = datetime.today() - record.time
+            return str(timedelta(seconds=delta.seconds))
 
     if question == 'how-many':
         return sum_count

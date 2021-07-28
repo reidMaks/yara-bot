@@ -22,6 +22,7 @@ class EventType(enum.Enum):
     shit = 'shit'
     walk = 'walk'
     bath = 'bath'
+    play = 'play'
 
 
 class Event(Base):

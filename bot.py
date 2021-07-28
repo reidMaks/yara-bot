@@ -77,7 +77,7 @@ def stat_btn_on_click(message):
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
 
-    markup.add(types.InlineKeyboardButton("Как давно кушали?", callback_data='statistic, how-long-ago,,eat'))
+    markup.add(types.InlineKeyboardButton("Как давно кушали?", callback_data='statistic,how-long-ago,,eat'))
     markup.add(types.InlineKeyboardButton("Сколько раз покакали?", callback_data='statistic,how-many,today,shit'))
     markup.add(types.InlineKeyboardButton("Сколько съели сегодня?", callback_data='statistic,how-much,today,eat'))
     markup.add(types.InlineKeyboardButton("Вчера купались?", callback_data='statistic,have,yesterday,bath'))
