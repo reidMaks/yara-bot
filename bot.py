@@ -1,8 +1,11 @@
+import os
+
 from config import BOT_TOKEN, OWNERS
 import datetime
 import telebot
 from telebot import types
 from repository import EventManager, Event, statistic
+from graphics import get_eat_graphic
 
 EAT_BTN = '🍼Еда'
 SLEEP_BTN = '😴 Сон'
@@ -75,12 +78,13 @@ def bath_btn_on_click(message):
 
 def stat_btn_on_click(message):
     markup = types.InlineKeyboardMarkup()
-    markup.row_width = 2
+    markup.row_width = 3
 
     markup.add(types.InlineKeyboardButton("Как давно кушали?", callback_data='statistic,how-long-ago,,eat'))
     markup.add(types.InlineKeyboardButton("Сколько раз покакали?", callback_data='statistic,how-many,today,shit'))
     markup.add(types.InlineKeyboardButton("Сколько съели сегодня?", callback_data='statistic,how-much,today,eat'))
     markup.add(types.InlineKeyboardButton("Вчера купались?", callback_data='statistic,have,yesterday,bath'))
+    markup.add(types.InlineKeyboardButton("График еды", callback_data='graphic,eat'))
 
     bot.send_message(text='Что интересует?',
                      chat_id=message.chat.id, reply_markup=markup)
@@ -125,6 +129,14 @@ def get_statistic(call_back):
         bot.send_message(call_back.message.chat.id, answer)
 
 
+def get_graph(call_back):
+    if 'graphic' in call_back.data:
+        pic_path = get_eat_graphic()
+        bot.send_photo(call_back.message.chat.id, open(pic_path, 'rb'))
+
+        os.remove(pic_path)
+
+
 keyboard_mapper = {
     EAT_BTN: eat_btn_on_click,
     SLEEP_BTN: sleep_btn_on_click,
@@ -146,6 +158,8 @@ def callback_query(call):
         update_event_record(call.message)
     elif 'statistic' in call.data:
         get_statistic(call)
+    elif 'graphic' in call.data:
+        get_graph(call)
 
 
 @bot.message_handler(func=lambda message: is_master(message.chat.id) and keyboard_mapper.get(message.text) is not None)
@@ -169,4 +183,3 @@ def set_keyboard(message):
 
 def is_master(user_id):
     return OWNERS.find(str(user_id)) >= 0
-
