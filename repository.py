@@ -1,5 +1,5 @@
 from db import Event, Session, EventType
-from typing import Union
+from typing import Union, Optional
 from datetime import datetime, timedelta
 
 
@@ -9,6 +9,16 @@ def get_session() -> Session:
         yield db
     finally:
         db.close()
+
+
+event_type_map = {
+    "еда": 'eat',
+    "сон": 'sleep',
+    "покакали": 'shit',
+    "прогулка": 'walk',
+    "купание": 'bath',
+    "бодрствование": 'play'
+}
 
 
 def statistic(callback_data: str) -> Union[str, int, bool, timedelta, None]:
@@ -21,7 +31,7 @@ def statistic(callback_data: str) -> Union[str, int, bool, timedelta, None]:
 
     today = datetime.today()
     if time == 'today':
-        #todo: Вынести в аналог началоДня() или найти готовый
+        # todo: Вынести в аналог началоДня() или найти готовый
         time = today - timedelta(hours=today.hour, minutes=today.minute, seconds=today.second)
     elif time == 'yesterday':
 
@@ -61,6 +71,29 @@ def statistic(callback_data: str) -> Union[str, int, bool, timedelta, None]:
 
 class EventManager:
     session = next(get_session())
+
+    def create_event(self, event_type: Union[str, EventType], time: Union[datetime, str], value: Union[int, str]) \
+            -> Optional[Event]:
+
+        if type(event_type) is str and event_type_map[event_type.lower()] in EventType.__members__:
+            event_type = EventType[event_type_map[event_type.lower()]]
+
+        if type(event_type) is not EventType:
+            raise Exception('Не верный параметр event_type')
+
+        if type(time) is str:
+            time = datetime.strptime(time, "%H:%M")
+            now = datetime.now()
+            time = time.replace(now.year, now.month, now.day)
+
+        if type(time) is not datetime:
+            raise Exception('Не верный параметр time')
+
+        value = int(value)
+
+        event = Event(type=event_type, time=time, value=value)
+
+        return self.save_event(event)
 
     def save_event(self, event: Event):
         self.session.add(event)
