@@ -28,6 +28,7 @@ def eat_btn_on_click(message):
 
     markup.add(get_value_btn(record.id))
     markup.add(get_comment_btn(record.id))
+    markup.add(get_remove_btn(record.id))
 
     bot.send_message(text=record, chat_id=message.chat.id, reply_markup=markup)
 
@@ -39,6 +40,7 @@ def sleep_btn_on_click(message):
 
     markup.add(get_end_time_btn(record.id))
     markup.add(get_comment_btn(record.id))
+    markup.add(get_remove_btn(record.id))
 
     bot.send_message(text=f"""{record}\n
         Пора готовить следующий прием пищи ;)
@@ -53,6 +55,7 @@ def walk_btn_on_click(message):
 
     markup.add(get_end_time_btn(record.id))
     markup.add(get_comment_btn(record.id))
+    markup.add(get_remove_btn(record.id))
 
     bot.send_message(text=f"""{record}\n
         Хорошей прогулки! 
@@ -63,17 +66,25 @@ def walk_btn_on_click(message):
 def shit_btn_on_click(message):
     record = EventManager.save_event(Event("shit"))
 
+    markup = types.InlineKeyboardMarkup()
+    markup.row_width = 2
+
+    markup.add(get_remove_btn(record.id))
     bot.send_message(text=f"""{record}\n
         Это определенно успех!""",
-                     chat_id=message.chat.id)
+                     chat_id=message.chat.id, reply_markup=markup)
 
 
 def bath_btn_on_click(message):
     record = EventManager.save_event(Event("bath"))
 
+    markup = types.InlineKeyboardMarkup()
+    markup.row_width = 2
+
+    markup.add(get_remove_btn(record.id))
     bot.send_message(text=f"""{record}\n
         С легким паром!""",
-                     chat_id=message.chat.id)
+                     chat_id=message.chat.id, reply_markup=markup)
 
 
 def stat_btn_on_click(message):
@@ -107,6 +118,16 @@ def update_event_record(message):
     call_buffer = ''
 
 
+def remove_event(call):
+    global call_buffer
+    record_id, _ = call_buffer.split(',')
+
+    EventManager.remove_event(record_id)
+    call_buffer = ''
+
+    bot.delete_message(call.message.chat.id, call.message.id)
+
+
 def get_value_btn(record_id):
     return types.InlineKeyboardButton("Добавить объем", callback_data=f"{record_id},value")
 
@@ -117,6 +138,10 @@ def get_comment_btn(record_id):
 
 def get_end_time_btn(record_id):
     return types.InlineKeyboardButton("Завершить", callback_data=f"{record_id},end_time")
+
+
+def get_remove_btn(record_id):
+    return types.InlineKeyboardButton("❌", callback_data=f"{record_id},remove")
 
 
 def get_statistic(call_back):
@@ -154,6 +179,8 @@ def callback_query(call):
     if 'value' in call.data or 'comment' in call.data:
         send = bot.send_message(text="Пиши", chat_id=call.message.chat.id)
         bot.register_next_step_handler(send, update_event_record)
+    elif 'remove' in call.data:
+        remove_event(call)
     elif 'end_time' in call.data:
         update_event_record(call.message)
     elif 'statistic' in call.data:
