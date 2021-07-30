@@ -1,4 +1,5 @@
 import os
+import re
 
 from config import BOT_TOKEN, OWNERS
 import datetime
@@ -125,6 +126,7 @@ def remove_event(call):
     EventManager.remove_event(record_id)
     call_buffer = ''
 
+    bot.answer_callback_query(call.id, "Событие удалено!", show_alert=True)
     bot.delete_message(call.message.chat.id, call.message.id)
 
 
@@ -192,6 +194,21 @@ def callback_query(call):
 @bot.message_handler(func=lambda message: is_master(message.chat.id) and keyboard_mapper.get(message.text) is not None)
 def keyboard_btn(message):
     keyboard_mapper[message.text](message)
+
+
+@bot.message_handler(regexp=r"(еда|прогулка|купание|покакали|сон)?\s\d{1,2}(-|:|;)\d{1,2}?\s\d{1,4}")
+def add_event(message):
+    rx = re.compile(r"(еда|прогулка|купание|покакали|сон)?\s(\d{1,2}(-|:|;)\d{1,2})?\s(\d{1,4})", flags=re.IGNORECASE)
+    action, time, _, value = rx.findall(message.text)[0]
+
+    event = EventManager.create_event(action, time, value)
+
+    markup = types.InlineKeyboardMarkup()
+    markup.row_width = 2
+
+    markup.add(get_remove_btn(event.id))
+
+    bot.reply_to(message, f"✅  Создал событие {event}", reply_markup=markup)
 
 
 @bot.message_handler(func=lambda message: is_master(message.chat.id))
