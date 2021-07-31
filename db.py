@@ -1,6 +1,6 @@
 import re
 
-from config import DB_URL
+from config import DB_URL, isProduction
 import datetime
 import enum
 from sqlalchemy import Column, Integer, String, create_engine, DateTime, Enum, Boolean
@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 
 __all__ = ["Event", "User"]
 
-engine = create_engine(DB_URL, echo=True)
+engine = create_engine(DB_URL, echo=not isProduction())
 if not database_exists(engine.url):
     create_database(engine.url)
 

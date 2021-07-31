@@ -5,6 +5,7 @@ from bot import upd_pin_eat
 
 
 def upd_pin():
+    print(f"{time.strftime('%b %d %Y %H:%M:%S')} DO upd_pin_eat")
     upd_pin_eat(None)
 
 
