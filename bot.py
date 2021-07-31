@@ -195,7 +195,7 @@ def send_events(message):
         .order_by(Event.time.desc()).all()
     answer = [str(i) for i in result]
 
-    if answer.count() == 0:
+    if len(answer) == 0:
         answer = ["Событий нет"]
     bot.reply_to(message, "\n".join(answer))
 
