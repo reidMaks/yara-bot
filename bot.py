@@ -207,7 +207,7 @@ def upd_pin_eat(message):
     global PIN_MSG_EAT
 
     time = statistic("statistic,how-long-ago,,eat")
-    text = f'{eat_time_switcher(time)} последний прием пищи {time} назад'
+    text = f'{eat_time_switcher(time)} {time} назад последний прием пищи'
     if PIN_MSG_EAT is None:
 
         if message is None:
