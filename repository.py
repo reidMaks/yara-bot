@@ -107,7 +107,7 @@ class EventManager:
         for key, value in new_value.items():
             event[key] = value
 
-        self.save_event(event)
+        return self.save_event(event)
 
     def remove_event(self, event_id: int):
         self.query().filter_by(id=event_id).delete()

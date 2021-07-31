@@ -1,3 +1,5 @@
+import re
+
 from config import DB_URL
 import datetime
 import enum
@@ -24,6 +26,16 @@ class EventType(enum.Enum):
     bath = 'bath'
     play = 'play'
 
+    def __str__(self):
+        reprs = {'eat': 'Ели',
+                 'sleep': 'Спали',
+                 'shit': 'Какали',
+                 'walk': 'Гуляли',
+                 'bath': 'Купались',
+                 'play': 'Бодрствовали'
+                 }
+        return reprs[self.name]
+
 
 class Event(Base):
     __tablename__ = 'events'
@@ -44,7 +56,16 @@ class Event(Base):
         self.comment = comment
 
     def __repr__(self):
-        return "Событие (%s, %s, %s, %s)" % (format(self.time, '%d.%m %H:%M'), self.type, self.value, self.comment)
+        regex = r"^\s*$\n"
+        r = f"""
+            Событие [{self.id}]:
+                Действие:       {self.type}
+                Начало события: {format(self.time, '%d.%m %H:%M')}
+                {'' if self.end_time is None else "Конец события:        " + format(self.end_time, '%d.%m %H:%M')}
+                {'' if self.value == 0 else "Количество:        " + str(self.value) + " мл."}
+                {'' if self.comment == "" else "Комментарий:    " + self.comment}
+            """
+        return re.sub(regex, "", r, 0, re.MULTILINE | re.IGNORECASE)
 
     def __getitem__(self, key):
         return getattr(self, key)

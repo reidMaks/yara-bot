@@ -99,7 +99,7 @@ def stat_btn_on_click(message):
 
 def update_event_record(message):
     global call_buffer
-    record_id, field_name = call_buffer.split(',')
+    record_id, field_name = call_buffer.data.split(',')
 
     if field_name == 'value':
         value = int(message.text)  # todo: Добавить проверку пользовательского ввода
@@ -110,13 +110,17 @@ def update_event_record(message):
     else:
         raise Exception('Получено не корректное значение value для события')
 
-    EventManager.update_event(record_id, {field_name: value})
+    upd_event = EventManager.update_event(record_id, {field_name: value})
+    bot.answer_callback_query(call_buffer.id, 'Событие обновлено')
+    bot.edit_message_text(upd_event, chat_id=call_buffer.message.chat.id, message_id=call_buffer.message.id,
+                          reply_markup=call_buffer.message.reply_markup)
+
     call_buffer = ''
 
 
 def remove_event(call):
     global call_buffer
-    record_id, _ = call_buffer.split(',')
+    record_id, _ = call_buffer.data.split(',')
 
     EventManager.remove_event(record_id)
     call_buffer = ''
@@ -182,9 +186,10 @@ def send_events(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     global call_buffer
-    call_buffer = call.data
+    call_buffer = call
     if 'value' in call.data or 'comment' in call.data:
-        send = bot.send_message(text="Пиши", chat_id=call.message.chat.id)
+        send = bot.send_message(text=f"Пиши {'объем в мл.' if 'value' in call.data else 'комментарий'}",
+                                chat_id=call.message.chat.id)
         bot.register_next_step_handler(send, update_event_record)
     elif 'remove' in call.data:
         remove_event(call)
