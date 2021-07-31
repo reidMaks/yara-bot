@@ -31,7 +31,7 @@ def eat_btn_on_click(message):
     markup.add(get_comment_btn(record.id))
     markup.add(get_remove_btn(record.id))
 
-    bot.send_message(text=record, chat_id=message.chat.id, reply_markup=markup)
+    bot.reply_to(message, text=record, reply_markup=markup)
 
 
 def sleep_btn_on_click(message):
@@ -43,10 +43,9 @@ def sleep_btn_on_click(message):
     markup.add(get_comment_btn(record.id))
     markup.add(get_remove_btn(record.id))
 
-    bot.send_message(text=f"""{record}\n
+    bot.reply_to(message, text=f"""{record}\n
         Пора готовить следующий прием пищи ;)
-        Бутылочка чистая? а воды кипяченой хватает?""",
-                     chat_id=message.chat.id, reply_markup=markup)
+        Бутылочка чистая? а воды кипяченой хватает?""", reply_markup=markup)
 
 
 def walk_btn_on_click(message):
@@ -58,10 +57,9 @@ def walk_btn_on_click(message):
     markup.add(get_comment_btn(record.id))
     markup.add(get_remove_btn(record.id))
 
-    bot.send_message(text=f"""{record}\n
+    bot.reply_to(message, text=f"""{record}\n
         Хорошей прогулки! 
-        Может в будущем я научусь рассказывать прогноз погоды?""",
-                     chat_id=message.chat.id, reply_markup=markup)
+        Может в будущем я научусь рассказывать прогноз погоды?""", reply_markup=markup)
 
 
 def shit_btn_on_click(message):
@@ -71,9 +69,8 @@ def shit_btn_on_click(message):
     markup.row_width = 2
 
     markup.add(get_remove_btn(record.id))
-    bot.send_message(text=f"""{record}\n
-        Это определенно успех!""",
-                     chat_id=message.chat.id, reply_markup=markup)
+    bot.reply_to(message, text=f"""{record}\n
+        Это определенно успех!""", reply_markup=markup)
 
 
 def bath_btn_on_click(message):
@@ -83,9 +80,8 @@ def bath_btn_on_click(message):
     markup.row_width = 2
 
     markup.add(get_remove_btn(record.id))
-    bot.send_message(text=f"""{record}\n
-        С легким паром!""",
-                     chat_id=message.chat.id, reply_markup=markup)
+    bot.reply_to(message, text=f"""{record}\n
+        С легким паром!""", reply_markup=markup)
 
 
 def stat_btn_on_click(message):
@@ -98,8 +94,7 @@ def stat_btn_on_click(message):
     markup.add(types.InlineKeyboardButton("Вчера купались?", callback_data='statistic,have,yesterday,bath'))
     markup.add(types.InlineKeyboardButton("График еды", callback_data='graphic,eat'))
 
-    bot.send_message(text='Что интересует?',
-                     chat_id=message.chat.id, reply_markup=markup)
+    bot.reply_to(message, text='Что интересует?', reply_markup=markup)
 
 
 def update_event_record(message):
@@ -201,14 +196,14 @@ def callback_query(call):
         get_graph(call)
 
 
-@bot.message_handler(func=lambda message: is_master(message.chat.id) and keyboard_mapper.get(message.text) is not None)
+@bot.message_handler(func=lambda message: is_masters_message(message) and keyboard_mapper.get(message.text) is not None)
 def keyboard_btn(message):
     keyboard_mapper[message.text](message)
 
 
 @bot.message_handler(regexp=r"(еда|прогулка|купание|покакали|сон)?\s\d{1,2}(-|:|;)\d{1,2}?\s\d{1,4}")
 def add_event(message):
-    rx = re.compile(r"(еда|прогулка|купание|покакали|сон)?\s(\d{1,2}(-|:|;)\d{1,2})?\s(\d{1,4})", flags=re.IGNORECASE)
+    rx = re.compile(r"(еда|прогулка|купание|покакали|сон)?\s(\d{1,2}([-:;])\d{1,2})?\s(\d{1,4})", flags=re.IGNORECASE)
     action, time, _, value = rx.findall(message.text)[0]
 
     event = EventManager.create_event(action, time, value)
@@ -221,7 +216,7 @@ def add_event(message):
     bot.reply_to(message, f"✅  Создал событие {event}", reply_markup=markup)
 
 
-@bot.message_handler(func=lambda message: is_master(message.chat.id))
+@bot.message_handler(func=lambda message: is_masters_message(message))
 def set_keyboard(message):
     markup = types.ReplyKeyboardMarkup(row_width=1)
 
@@ -232,11 +227,8 @@ def set_keyboard(message):
     markup.add(types.KeyboardButton(BATH_BTN))
     markup.add(types.KeyboardButton(STAT_BTN))
 
-    bot.send_message(text='Здоров', chat_id=message.chat.id, reply_markup=markup)
+    bot.reply_to(message, text='Здоров', reply_markup=markup)
 
 
-def is_master(user_id):
-    return OWNERS.find(str(user_id)) >= 0
-
-
-bot.set_my_commands
+def is_masters_message(message):
+    return OWNERS.find(str(message.from_user.id)) >= 0
