@@ -174,6 +174,16 @@ keyboard_mapper = {
 }
 
 
+@bot.message_handler(commands=['event'])
+def send_events(message):
+    result = EventManager.query() \
+        .filter(Event.time >= datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)) \
+        .order_by(Event.time.desc()).all()
+    answer = [str(i) for i in result]
+
+    bot.reply_to(message, "\n".join(answer))
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
     global call_buffer
@@ -227,3 +237,6 @@ def set_keyboard(message):
 
 def is_master(user_id):
     return OWNERS.find(str(user_id)) >= 0
+
+
+bot.set_my_commands
