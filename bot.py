@@ -200,7 +200,7 @@ def send_events(message):
     bot.reply_to(message, "\n".join(answer))
 
 
-@bot.message_handler(commands=['pin-eat'])
+@bot.message_handler(commands=['pin'])
 def upd_pin_eat(message):
     # обновление возможно только в чате в котором команда вызвана в последний раз
     # прикрепленное сообщение не хранится в БД и будет сброшено при перезапуске
