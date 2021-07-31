@@ -15,6 +15,8 @@ SHIT_BTN = '💩 О мой б-г, это случилось'
 BATH_BTN = '🛁 Купание'
 STAT_BTN = '📈 Статистика'
 
+PIN_MSG_EAT = None
+
 bot = telebot.TeleBot(BOT_TOKEN)
 EventManager = EventManager()
 # Буфер используется для хранения данных от редактируемом событии
@@ -173,6 +175,19 @@ keyboard_mapper = {
 }
 
 
+def eat_time_switcher(time: str) -> str:
+    time = datetime.datetime.strptime(time, '%H:%M:%S')
+    m = time.hour * 60 + time.minute
+
+    return {
+        m < 60: '🙂',
+        60 <= m < 90: '🤔',
+        90 <= m < 120: '😕',
+        120 <= m < 180: '😡',
+        180 <= m: '🤬'
+    }[True]
+
+
 @bot.message_handler(commands=['event'])
 def send_events(message):
     result = EventManager.query() \
@@ -181,6 +196,27 @@ def send_events(message):
     answer = [str(i) for i in result]
 
     bot.reply_to(message, "\n".join(answer))
+
+
+@bot.message_handler(commands=['pin-eat'])
+def upd_pin_eat(message):
+    # обновление возможно только в чате в котором команда вызвана в последний раз
+    # прикрепленное сообщение не хранится в БД и будет сброшено при перезапуске
+    global PIN_MSG_EAT
+
+    time = statistic("statistic,how-long-ago,,eat")
+    text = f'{eat_time_switcher(time)} последний прием пищи {time} назад'
+    if PIN_MSG_EAT is None:
+
+        if message is None:
+            return True
+
+        send = bot.reply_to(message, text)
+        bot.pin_chat_message(message.chat.id, send.id)
+        PIN_MSG_EAT = send
+    else:
+        bot.edit_message_text(text, message_id=PIN_MSG_EAT.id,
+                              chat_id=PIN_MSG_EAT.chat.id)
 
 
 @bot.callback_query_handler(func=lambda call: True)
