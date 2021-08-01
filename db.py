@@ -7,10 +7,11 @@ from sqlalchemy import Column, Integer, String, create_engine, DateTime, Enum, B
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 __all__ = ["Event", "User"]
 
-engine = create_engine(DB_URL, echo=not isProduction(), pool_size=20, max_overflow=0)
+engine = create_engine(DB_URL, echo=not isProduction(), poolclass=NullPool)
 if not database_exists(engine.url):
     create_database(engine.url)
 
