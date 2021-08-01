@@ -17,3 +17,4 @@ if not isProduction():
 else:
     DB_URL = os.environ.get("DATABASE_URL", None).replace("postgres", "postgresql", 1)
 
+UPD_PIN_INTERVAL = int(os.environ.get('UPD_PIN_INTERVAL', '300'))  # интревал обновление прикрепленного сообщения в секундах

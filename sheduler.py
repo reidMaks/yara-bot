@@ -2,6 +2,7 @@ import schedule
 import time
 from threading import Thread
 from bot import upd_pin_eat
+from config import UPD_PIN_INTERVAL
 
 
 def upd_pin():
@@ -10,7 +11,7 @@ def upd_pin():
 
 
 def do_schedule():
-    schedule.every(60).seconds.do(upd_pin)
+    schedule.every(UPD_PIN_INTERVAL).seconds.do(upd_pin)
 
     while True:
         schedule.run_pending()
