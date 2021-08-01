@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import datetime
-from db import engine
+from repository import get_session
 
 
 def lineplot(x_data, y_data, x_label="", y_label="", title=""):
@@ -19,7 +19,11 @@ def get_eat_graphic():
                     WHERE events.type='eat' and events.value > 0
                     GROUP BY date_trunc('day', time)"""
 
-    rec = engine.execute(query_text)
+    connection = next(get_session()).connection()
+    try:
+        rec = connection.execute(query_text)
+    finally:
+        connection.close()
 
     x = []
     y = []

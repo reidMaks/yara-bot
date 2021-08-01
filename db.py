@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 
 __all__ = ["Event", "User"]
 
-engine = create_engine(DB_URL, echo=not isProduction())
+engine = create_engine(DB_URL, echo=not isProduction(), pool_size=20, max_overflow=0)
 if not database_exists(engine.url):
     create_database(engine.url)
 
