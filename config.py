@@ -14,6 +14,7 @@ PG_SRV = os.environ.get('PG_SRV', '')
 
 if not isProduction():
     DB_URL = f"postgresql://{PG_USER}:{PG_PWD}@{PG_SRV}/yara-bd"
+    UPD_PIN_INTERVAL = 5  # интревал обновление прикрепленного сообщения в секундах
 else:
     DB_URL = os.environ.get("DATABASE_URL", None).replace("postgres", "postgresql", 1)
-
+    UPD_PIN_INTERVAL = int(os.environ.get('PG_USER', '300'))
