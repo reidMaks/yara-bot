@@ -19,11 +19,8 @@ def get_eat_graphic():
                     WHERE events.type='eat' and events.value > 0
                     GROUP BY date_trunc('day', time)"""
 
-    connection = next(get_session()).connection()
-    try:
-        rec = connection.execute(query_text)
-    finally:
-        connection.close()
+    connection = get_session().connection()
+    rec = connection.execute(query_text)
 
     x = []
     y = []

@@ -11,12 +11,26 @@ from sqlalchemy.pool import NullPool
 
 __all__ = ["Event", "User"]
 
-engine = create_engine(DB_URL, echo=not isProduction(), poolclass=NullPool)
+engine = create_engine(DB_URL, echo=not isProduction(), poolclass=NullPool,
+                       execution_options={
+                           "isolation_level": "AUTOCOMMIT"
+                       }
+                       )
 if not database_exists(engine.url):
     create_database(engine.url)
 
 Base = declarative_base()
 Session = sessionmaker(bind=engine)
+
+
+class DB:
+
+    session = Session()
+
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(DB, cls).__new__(cls)
+        return cls.instance
 
 
 class EventType(enum.Enum):
@@ -56,7 +70,7 @@ class Event(Base):
         self.value = value
         self.comment = comment
 
-    def __repr__(self):
+    def __str__(self):
         regex = r"^\s*$\n"
         r = f"""
             Событие [{self.id}]:

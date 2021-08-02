@@ -237,6 +237,8 @@ def callback_query(call):
         get_statistic(call)
     elif 'graphic' in call.data:
         get_graph(call)
+    elif 'event_from_str' in call.data:
+        add_event_from_str_continue(call=call)
 
 
 @bot.message_handler(func=lambda message: is_masters_message(message) and keyboard_mapper.get(message.text) is not None)
@@ -245,9 +247,60 @@ def keyboard_btn(message):
 
 
 @bot.message_handler(regexp=r"(еда|прогулка|купание|покакали|сон)?\s\d{1,2}(-|:|;)\d{1,2}?\s\d{1,4}")
-def add_event(message):
+def add_event_from_str(message):
     rx = re.compile(r"(еда|прогулка|купание|покакали|сон)?\s(\d{1,2}([-:;])\d{1,2})?\s(\d{1,4})", flags=re.IGNORECASE)
     action, time, _, value = rx.findall(message.text)[0]
+
+    h, _, m = re.findall(r"(\d{1,2})([-:;])(\d{1,2})", time)[0]
+    h = int(h)
+    m = int(m)
+
+    if h > 23 or m > 59:
+        bot.reply_to(message, "Получено не правильное время. Не могу создать событие")
+        return
+
+    current_time = datetime.datetime.now()
+    time = f"{h}:{m}"
+
+    if current_time.hour * 60 + current_time.minute < h * 60 + m:
+        text = f'Переданное время {time} больше текущего {current_time.strftime("%H:%M")}' \
+               f'\nВыбери, что делать дальше:'
+
+        markup = types.InlineKeyboardMarkup()
+        markup.row_width = 2
+
+        time = current_time.replace(hour=h, minute=m, second=0, microsecond=0)
+        time = time - datetime.timedelta(days=1)
+
+        markup.add(types.InlineKeyboardButton("⏰ Внести вчерашней датой", callback_data=f"event_from_str,{action},{time},{value}"))
+        markup.add(types.InlineKeyboardButton("❌ Это ошибка. Забудь", callback_data=f"event_from_str,error"))
+
+        bot.reply_to(message, text, reply_markup=markup)
+        return
+
+    add_event_from_str_continue(message=message, action=action, time=time, value=value)
+
+
+def add_event_from_str_continue(**kwargs) -> None:
+
+    if 'call' in kwargs:
+        call = kwargs['call']
+
+        if 'error' in call.data:
+            bot.answer_callback_query(call.id, "Событие удалено!", show_alert=True)
+            bot.delete_message(call.message.chat.id, call.message.id)
+            return
+        else:
+            _, action, time, value = call.data.split(',')
+            time = datetime.datetime.strptime(time, '%Y-%m-%d %H:%M:%S')
+            message = call.message
+
+            bot.delete_message(call.message.chat.id, call.message.id)
+    else:
+        action = kwargs['action']
+        time = kwargs['time']
+        value = kwargs['value']
+        message = kwargs['message']
 
     event = EventManager.create_event(action, time, value)
 
@@ -256,7 +309,7 @@ def add_event(message):
 
     markup.add(get_remove_btn(event.id))
 
-    bot.reply_to(message, f"✅  Создал событие {event}", reply_markup=markup)
+    bot.send_message(message.chat.id, f"✅  Создал событие {event}", reply_markup=markup)
 
 
 @bot.message_handler(func=lambda message: is_masters_message(message))

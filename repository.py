@@ -1,14 +1,10 @@
-from db import Event, Session, EventType
+from db import Event, Session, EventType, DB
 from typing import Union, Optional
 from datetime import datetime, timedelta
 
 
 def get_session() -> Session:
-    db = Session()
-    try:
-        yield db
-    finally:
-        db.close()
+    return DB().session
 
 
 event_type_map = {
@@ -39,7 +35,7 @@ def statistic(callback_data: str) -> Union[str, int, bool, timedelta, None]:
     else:
         time = datetime(1, 1, 1)
 
-    session = next(get_session())
+    session = get_session()
     result = session.query(Event) \
         .filter(Event.type == event_type, Event.time >= time) \
         .order_by(Event.time.desc())
@@ -70,7 +66,7 @@ def statistic(callback_data: str) -> Union[str, int, bool, timedelta, None]:
 
 
 class EventManager:
-    session = next(get_session())
+    session = get_session()
 
     def create_event(self, event_type: Union[str, EventType], time: Union[datetime, str], value: Union[int, str]) \
             -> Optional[Event]:
@@ -82,6 +78,7 @@ class EventManager:
             raise Exception('Не верный параметр event_type')
 
         if type(time) is str:
+
             time = datetime.strptime(time, "%H:%M")
             now = datetime.now()
             time = time.replace(now.year, now.month, now.day)
@@ -99,7 +96,7 @@ class EventManager:
         self.session.add(event)
         self.session.commit()
 
-        return self.session.query(Event).filter_by(time=event.time).first()
+        return event
 
     def update_event(self, event_id: int, new_value: dict):
         event = self.query().filter_by(id=event_id).first()
@@ -111,7 +108,6 @@ class EventManager:
 
     def remove_event(self, event_id: int):
         self.query().filter_by(id=event_id).delete()
-        self.session.commit()
 
     def query(self):
         return self.session.query(Event)
