@@ -176,8 +176,13 @@ keyboard_mapper = {
 
 
 def eat_time_switcher(time: str) -> str:
-    time = datetime.datetime.strptime(time, '%H:%M:%S')
-    m = time.hour * 60 + time.minute
+
+    assert type(time) is str
+    regexp = r"(\d{1,2}):(\d{1,2}):(\d{1,2})"
+    assert re.fullmatch(regexp, time) is not None
+
+    h, m, s = re.findall(regexp, time)[0]
+    m = int(h) * 60 + int(m) + int(s)/60
 
     return {
         m < 60: '🙂',
@@ -326,5 +331,5 @@ def set_keyboard(message):
     bot.reply_to(message, text='Здоров', reply_markup=markup)
 
 
-def is_masters_message(message):
+def is_masters_message(message: types.Message) -> bool:
     return OWNERS.find(str(message.from_user.id)) >= 0
