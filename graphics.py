@@ -17,7 +17,8 @@ def get_eat_graphic():
     query_text = """
                     SELECT date_trunc('day', time), SUM(value) FROM events
                     WHERE events.type='eat' and events.value > 0
-                    GROUP BY date_trunc('day', time)"""
+                    GROUP BY date_trunc('day', time)
+                    ORDER BY date_trunc('day', time) ASC"""
 
     connection = get_session().connection()
     rec = connection.execute(query_text)
