@@ -5,7 +5,7 @@ from config import BOT_TOKEN, OWNERS
 import datetime
 import telebot
 from telebot import types
-from repository import EventManager, Event, statistic
+from repository import EventManager, EventModel, statistic
 from graphics import get_eat_graphic
 
 EAT_BTN = '🍼Еда'
@@ -18,6 +18,7 @@ STAT_BTN = '📈 Статистика'
 PIN_MSG_EAT = None
 
 bot = telebot.TeleBot(BOT_TOKEN)
+
 EventManager = EventManager()
 # Буфер используется для хранения данных от редактируемом событии
 # на время ожидания пользовательского ввода
@@ -25,7 +26,7 @@ call_buffer = ''
 
 
 def eat_btn_on_click(message):
-    record = EventManager.save_event(Event("eat"))
+    record = EventManager.save_event(EventModel("eat"))
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
 
@@ -37,7 +38,7 @@ def eat_btn_on_click(message):
 
 
 def sleep_btn_on_click(message):
-    record = EventManager.save_event(Event("sleep"))
+    record = EventManager.save_event(EventModel("sleep"))
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
 
@@ -51,7 +52,7 @@ def sleep_btn_on_click(message):
 
 
 def walk_btn_on_click(message):
-    record = EventManager.save_event(Event("walk"))
+    record = EventManager.save_event(EventModel("walk"))
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
 
@@ -65,7 +66,7 @@ def walk_btn_on_click(message):
 
 
 def shit_btn_on_click(message):
-    record = EventManager.save_event(Event("shit"))
+    record = EventManager.save_event(EventModel("shit"))
 
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
@@ -76,7 +77,7 @@ def shit_btn_on_click(message):
 
 
 def bath_btn_on_click(message):
-    record = EventManager.save_event(Event("bath"))
+    record = EventManager.save_event(EventModel("bath"))
 
     markup = types.InlineKeyboardMarkup()
     markup.row_width = 2
@@ -196,8 +197,8 @@ def eat_time_switcher(time: str) -> str:
 @bot.message_handler(commands=['event'])
 def send_events(message):
     result = EventManager.query() \
-        .filter(Event.time >= datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)) \
-        .order_by(Event.time.desc()).all()
+        .filter(EventModel.time >= datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)) \
+        .order_by(EventModel.time.desc()).all()
     answer = [str(i) for i in result]
 
     if len(answer) == 0:

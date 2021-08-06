@@ -9,7 +9,7 @@ from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
-__all__ = ["Event", "User"]
+__all__ = ["EventModel", "User"]
 
 engine = create_engine(DB_URL, echo=not isProduction(), poolclass=NullPool,
                        execution_options={
@@ -52,7 +52,7 @@ class EventType(enum.Enum):
         return reprs[self.name]
 
 
-class Event(Base):
+class EventModel(Base):
     __tablename__ = 'events'
     id = Column(Integer, primary_key=True)
     type = Column(Enum(EventType))

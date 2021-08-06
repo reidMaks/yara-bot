@@ -1,4 +1,4 @@
-from db import Event, Session, EventType, DB
+from db import EventModel, Session, EventType, DB
 from typing import Union, Optional
 from datetime import datetime, timedelta
 
@@ -36,9 +36,9 @@ def statistic(callback_data: str) -> Union[str, int, bool, timedelta, None]:
         time = datetime(1, 1, 1)
 
     session = get_session()
-    result = session.query(Event) \
-        .filter(Event.type == event_type, Event.time >= time) \
-        .order_by(Event.time.desc())
+    result = session.query(EventModel) \
+        .filter(EventModel.type == event_type, EventModel.time >= time) \
+        .order_by(EventModel.time.desc())
 
     if result.count() == 0:
         return None
@@ -69,7 +69,7 @@ class EventManager:
     session = get_session()
 
     def create_event(self, event_type: Union[str, EventType], time: Union[datetime, str], value: Union[int, str]) \
-            -> Optional[Event]:
+            -> Optional[EventModel]:
 
         if type(event_type) is str and event_type_map[event_type.lower()] in EventType.__members__:
             event_type = EventType[event_type_map[event_type.lower()]]
@@ -88,11 +88,11 @@ class EventManager:
 
         value = int(value)
 
-        event = Event(type=event_type, time=time, value=value)
+        event = EventModel(type=event_type, time=time, value=value)
 
         return self.save_event(event)
 
-    def save_event(self, event: Event):
+    def save_event(self, event: EventModel):
         self.session.add(event)
         self.session.commit()
 
@@ -110,4 +110,4 @@ class EventManager:
         self.query().filter_by(id=event_id).delete()
 
     def query(self):
-        return self.session.query(Event)
+        return self.session.query(EventModel)
