@@ -1,13 +1,20 @@
 from abc import *
+from typing import TypeVar, Type
 from db import DB, EventModel
+
+T = TypeVar('T')
 
 
 class Event(ABC, EventModel):
     __session = DB().session
 
     @classmethod
-    def find_event(cls, event_id: int):
+    def find_event(cls: Type[T], event_id: int) -> T:
         return cls.__session.query().filter_by(id=event_id).first()
+
+    @classmethod
+    def remove_event(cls, event_id: int):
+        return cls.find_event(event_id).remove()
 
     @property
     @abstractmethod
@@ -21,10 +28,10 @@ class Event(ABC, EventModel):
 
     def remove(self):
         if self.id is not None:
-            self.__session.filter_by(id=self.id)\
+            self.__session.filter_by(id=self.id) \
                 .delete()
 
-    def update(self, new_value):
+    def update(self, new_value: dict):
 
         for key, value in new_value.items():
             if key in vars(self).keys():
@@ -41,8 +48,4 @@ class Event(ABC, EventModel):
 class FlashEvent(Event):
     @property
     def is_long(self):
-        pass
-
-
-    def update(self):
-        pass
+        return False

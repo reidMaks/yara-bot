@@ -8,13 +8,6 @@ from telebot import types
 from repository import EventManager, EventModel, statistic
 from graphics import get_eat_graphic
 
-EAT_BTN = '🍼Еда'
-SLEEP_BTN = '😴 Сон'
-WALK_BTN = '🚶 Прогулка'
-SHIT_BTN = '💩 О мой б-г, это случилось'
-BATH_BTN = '🛁 Купание'
-STAT_BTN = '📈 Статистика'
-
 PIN_MSG_EAT = None
 
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -177,13 +170,12 @@ keyboard_mapper = {
 
 
 def eat_time_switcher(time: str) -> str:
-
     assert type(time) is str
     regexp = r"(\d{1,2}):(\d{1,2}):(\d{1,2})"
     assert re.fullmatch(regexp, time) is not None
 
     h, m, s = re.findall(regexp, time)[0]
-    m = int(h) * 60 + int(m) + int(s)/60
+    m = int(h) * 60 + int(m) + int(s) / 60
 
     return {
         m < 60: '🙂',
@@ -278,7 +270,8 @@ def add_event_from_str(message):
         time = current_time.replace(hour=h, minute=m, second=0, microsecond=0)
         time = time - datetime.timedelta(days=1)
 
-        markup.add(types.InlineKeyboardButton("⏰ Внести вчерашней датой", callback_data=f"event_from_str,{action},{time},{value}"))
+        markup.add(types.InlineKeyboardButton("⏰ Внести вчерашней датой",
+                                              callback_data=f"event_from_str,{action},{time},{value}"))
         markup.add(types.InlineKeyboardButton("❌ Это ошибка. Забудь", callback_data=f"event_from_str,error"))
 
         bot.reply_to(message, text, reply_markup=markup)
@@ -288,7 +281,6 @@ def add_event_from_str(message):
 
 
 def add_event_from_str_continue(**kwargs) -> None:
-
     if 'call' in kwargs:
         call = kwargs['call']
 
@@ -320,14 +312,7 @@ def add_event_from_str_continue(**kwargs) -> None:
 
 @bot.message_handler(func=lambda message: is_masters_message(message))
 def set_keyboard(message):
-    markup = types.ReplyKeyboardMarkup(row_width=1)
 
-    markup.add(types.KeyboardButton(EAT_BTN))
-    markup.add(types.KeyboardButton(SLEEP_BTN))
-    markup.add(types.KeyboardButton(WALK_BTN))
-    markup.add(types.KeyboardButton(SHIT_BTN))
-    markup.add(types.KeyboardButton(BATH_BTN))
-    markup.add(types.KeyboardButton(STAT_BTN))
 
     bot.reply_to(message, text='Здоров', reply_markup=markup)
 

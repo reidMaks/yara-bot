@@ -29,9 +29,41 @@ def get_eat_graphic():
         x.append(i["date_trunc"].strftime("%d.%m"))
         y.append(i["sum"])
 
-    lineplot(x, y, x_label="Объем, мл.", y_label="Дата", title="Объемы питания")
+    lineplot(x, y, y_label="Объем, мл.", x_label="Дата", title="Объемы питания")
 
     pic = f"./eat_{datetime.datetime.now()}.jpg"
     plt.savefig(fname=pic)
 
     return pic
+
+def get_():
+    query_text = """
+                SELECT 
+                  date_part('hour', time) AS "hour_number",
+                  AVG(events.value) AS "value",
+                  AVG(CurrentDay.value) AS "current_day_value"
+                FROM 
+                  events 
+                  LEFT JOIN (
+                  SELECT 
+                      date_part('hour', time) AS "hour_number",
+                      AVG(value) AS "value"
+                    FROM 
+                        events
+                    WHERE 
+                      events.type='eat' 
+                      and events.value > 0
+                      AND events.time >= date_trunc('day', current_timestamp)
+                    GROUP BY 
+                      date_part('hour', time)
+                    ORDER BY 
+                      date_part('hour', time) ASC
+                    ) AS CurrentDay on date_part('hour', events.time) = CurrentDay.hour_number
+                WHERE 
+                  events.type='eat' 
+                  and events.value > 0
+                GROUP BY 
+                  date_part('hour', time)
+                ORDER BY 
+                  date_part('hour', time) ASC
+                  """
