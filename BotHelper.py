@@ -3,22 +3,19 @@ from telebot import types
 
 class ButtonManager:
 
-    def get_start_keyboard(self):
+    @staticmethod
+    def get_start_keyboard() -> types.ReplyKeyboardMarkup:
+        eat_btn = types.KeyboardButton('🍼Еда')
+        sleep_btn = types.KeyboardButton('😴 Сон')
+        walk_btn = types.KeyboardButton('🚶 Прогулка')
+        shit_btn = types.KeyboardButton('💩 О мой б-г, это случилось')
+        bath_btn = types.KeyboardButton('🛁 Купание')
+        stat_btn = types.KeyboardButton('📈 Статистика')
 
-        eat_btn = '🍼Еда'
-        sleep_btn = '😴 Сон'
-        walk_btn = '🚶 Прогулка'
-        shit_btn = '💩 О мой б-г, это случилось'
-        bath_btn = '🛁 Купание'
-        stat_btn = '📈 Статистика'
+        markup = types.ReplyKeyboardMarkup(selective=True, resize_keyboard=True)
 
-        markup = types.ReplyKeyboardMarkup(row_width=1)
-
-        markup.add(types.KeyboardButton(eat_btn))
-        markup.add(types.KeyboardButton(sleep_btn))
-        markup.add(types.KeyboardButton(walk_btn))
-        markup.add(types.KeyboardButton(shit_btn))
-        markup.add(types.KeyboardButton(bath_btn))
-        markup.add(types.KeyboardButton(stat_btn))
+        markup.add(walk_btn, bath_btn, sleep_btn)
+        markup.add(shit_btn, eat_btn)
+        markup.add(stat_btn)
 
         return markup

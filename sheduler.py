@@ -1,7 +1,7 @@
 import schedule
 import time
 from threading import Thread
-from bot import upd_pin_eat
+import TGbot
 from config import UPD_PIN_INTERVAL
 
 
