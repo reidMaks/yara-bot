@@ -88,7 +88,7 @@ class EventManager:
 
         value = int(value)
 
-        event = EventModel(type=event_type, time=time, value=value)
+        event = EventModel(event_type=event_type, time=time, value=value)
 
         return self.save_event(event)
 

@@ -1,23 +1,37 @@
-from abc import *
-from typing import TypeVar, Type
+from typing import TypeVar, Type, Generator, Optional
 from db import DB, EventModel
 
-T = TypeVar('T')
+T = TypeVar('T', bound='Event')
 
 
-class Event(ABC, EventModel):
+class Event(EventModel):
     __session = DB().session
 
     @classmethod
-    def find_event(cls: Type[T], event_id: int) -> T:
-        return cls.__session.query().filter_by(id=event_id).first()
+    def find_event_by_id(cls: Type[T], event_id: int) -> Optional[T]:
+        res = cls.__session.query().filter_by(id=event_id)
+        if res:
+            first = res.first()
+            return first if isinstance(first, Event) else None
+        else:
+            return None
 
     @classmethod
-    def remove_event(cls, event_id: int):
-        return cls.find_event(event_id).remove()
+    def find_events(cls, *args) -> Generator[None, T, None]:
+        res = cls.__session.query().filter(*args)
+        if not res:
+            return None
 
-    @property
-    @abstractmethod
+        for i in res:
+            yield i
+
+    @classmethod
+    def remove_event_by_id(cls: Type[T], event_id: int):
+        res = cls.find_event_by_id(event_id)
+
+        if res:
+            res.remove()
+
     def is_long(self):
         """Событие имеет продолжительность во времени"""
         pass

@@ -1,17 +1,17 @@
 import re
 
-from config import DB_URL, isProduction
+from config import DB_URL, is_production
 import datetime
 import enum
 from sqlalchemy import Column, Integer, String, create_engine, DateTime, Enum, Boolean
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
 __all__ = ["EventModel", "User"]
 
-engine = create_engine(DB_URL, echo=not isProduction(), poolclass=NullPool,
+engine = create_engine(DB_URL, echo=not is_production(), poolclass=NullPool,
                        execution_options={
                            "isolation_level": "AUTOCOMMIT"
                        }
@@ -19,7 +19,7 @@ engine = create_engine(DB_URL, echo=not isProduction(), poolclass=NullPool,
 if not database_exists(engine.url):
     create_database(engine.url)
 
-Base = declarative_base()
+Base: DeclarativeMeta = declarative_base()
 Session = sessionmaker(bind=engine)
 
 
@@ -61,8 +61,8 @@ class EventModel(Base):
     value = Column(Integer)
     comment = Column(String)
 
-    def __init__(self, type, time=None, value=0, comment=''):
-        self.type = type
+    def __init__(self, event_type, time=None, value=0, comment=''):
+        self.type = event_type
         if time is None:
             self.time = datetime.datetime.now()
         else:

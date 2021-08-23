@@ -1,4 +1,5 @@
 from telebot import types
+import datetime
 
 
 class ButtonManager:
@@ -19,3 +20,7 @@ class ButtonManager:
         markup.add(stat_btn)
 
         return markup
+
+
+def begin_of_current_day():
+    return datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)

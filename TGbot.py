@@ -13,6 +13,8 @@ from Classes.MessageController import MessageController
 PIN_MSG_EAT = None
 
 bot = telebot.TeleBot(BOT_TOKEN)
+
+
 #
 # EventManager = EventManager()
 # # Буфер используется для хранения данных от редактируемом событии
@@ -190,22 +192,24 @@ bot = telebot.TeleBot(BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
 def on_start(message):
-    controller = MessageController(message)
+    controller = MessageController(message, bot)
     controller.set_strategy(StartCommandStrategy)
     controller.send_answer()
 
 
-# @bot.message_handler(commands=['event'])
-# def send_events(message):
-#     result = EventManager.query() \
-#         .filter(EventModel.time >= datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)) \
-#         .order_by(EventModel.time.desc()).all()
-#     answer = [str(i) for i in result]
-#
-#     if len(answer) == 0:
-#         answer = ["Событий нет"]
-#     bot.reply_to(message, "\n".join(answer))
-#
+@bot.message_handler(commands=['help'])
+def on_help(message):
+    controller = MessageController(message, bot)
+    controller.set_strategy(HelpCommandStrategy)
+    controller.send_answer()
+
+
+@bot.message_handler(commands=['events'])
+def send_events(message):
+    controller = MessageController(message, bot)
+    controller.set_strategy(EventsCommandStrategy)
+    controller.send_answer()
+
 #
 # @bot.message_handler(commands=['pin'])
 # def upd_pin_eat(message):
