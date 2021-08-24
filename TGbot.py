@@ -8,7 +8,6 @@ from telebot import types
 from repository import EventManager, EventModel, statistic
 from graphics import get_eat_graphic
 from Classes.AnswerStrategy import *
-from Classes.MessageController import MessageController
 
 PIN_MSG_EAT = None
 
