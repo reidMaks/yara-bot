@@ -1,13 +1,15 @@
 import re
-
-from config import DB_URL, is_production
 import datetime
 import enum
+
 from sqlalchemy import Column, Integer, String, create_engine, DateTime, Enum, Boolean
 from sqlalchemy.ext.declarative import declarative_base, DeclarativeMeta
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
+from telebot import types as tt
+
+from config import DB_URL, is_production
 
 __all__ = ["EventModel", "User"]
 
@@ -24,7 +26,6 @@ Session = sessionmaker(bind=engine)
 
 
 class DB:
-
     session = Session()
 
     def __new__(cls):
@@ -103,3 +104,19 @@ class User(Base):
 
     def __setitem__(self, key, value):
         return setattr(self, key, value)
+
+
+class PinnedMessages(Base):
+    __tablename__ = 'pinned_messages'
+    __session = DB().session
+
+    msg_id = Column(Integer)
+    chat_id = Column(Integer, primary_key=True)
+
+    def __init__(self, message: tt.Message):
+        self.msg_id = message.id
+        self.chat_id = message.chat.id
+
+    def save(self):
+        self.__session.add(self)
+        self.__session.commit()

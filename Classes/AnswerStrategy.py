@@ -4,7 +4,7 @@ from telebot import TeleBot
 from typing import Union, Callable, Type, TypedDict
 
 from config import OWNERS
-from BotHelper import ButtonManager, begin_of_current_day
+from BotHelper import *
 
 
 class Answer(TypedDict):
@@ -32,22 +32,27 @@ class MessageController:
     def send_answer(self):
         self.strategy.execute()
         if type(self.message) is tt.Message:
-            self.send_msg_answer(self.message, self.answer, self.bot)
+            send = self.send_msg_answer(self.message, self._answer, self.bot)
         else:
-            self.send_call_answer(self.message, self.answer, self.bot)
+            send = self.send_call_answer(self.message, self._answer, self.bot)
+
+        self.after_send_answer(self, send)
+
+    def after_send_answer(self, send):
+        pass
 
     @staticmethod
-    def send_msg_answer(message: tt.Message, answer: AnswerKeyboard, bot: TeleBot) -> None:
+    def send_msg_answer(message: tt.Message, answer: AnswerKeyboard, bot: TeleBot) -> tt.Message:
 
         if answer.get("markup") is None:
             answer.setdefault("markup", None)
 
-        bot.reply_to(message, answer["text"], reply_markup=answer["markup"])
+        return bot.reply_to(message, answer["text"], reply_markup=answer["markup"])
 
     @staticmethod
     def send_call_answer(message: tt.CallbackQuery, answer: Union[Answer, AnswerKeyboard],
-                         bot: TeleBot) -> None:
-        bot.answer_callback_query(message.id, text=answer["text"])
+                         bot: TeleBot) -> bool:
+        return bot.answer_callback_query(message.id, text=answer["text"])
 
 
 def check_permission(self, method: Callable):
@@ -68,7 +73,7 @@ class Strategy(ABC):
 
     def __init__(self, owner: MessageController):
         self.trigger: Union[tt.Message, tt.CallbackQuery] = owner.message
-        self.owner: Type[MessageController] = owner
+        self.owner: MessageController = owner
 
     def __getattribute__(self, name):
         if name == "execute":  # Реализация декоратора для имплементируемых методов execute
@@ -118,8 +123,8 @@ class EventsCommandStrategy(Strategy):
     def execute(self):
         from Classes.Event import EventModel, Event
         b_date = begin_of_current_day()
-        result = Event.find_events(Event.time >= b_date) \
-            .order_by(Event.time.desc()).all()
+        result = Event.find_events(EventModel.time >= b_date)
+        #
 
         answer = [str(i) for i in result]
 
@@ -128,3 +133,20 @@ class EventsCommandStrategy(Strategy):
 
         ans = {"text": answer, "markup": None}
         self.owner.set_answer(ans)
+
+
+class PinCommandStrategy(Strategy):
+
+    def execute(self):
+
+        self.owner.set_answer({"text": last_eat_time_message(), "markup": None})
+
+        def after_answer(self, send):
+            from db import PinnedMessages
+
+            pm = PinnedMessages(send)
+            pm.save()
+
+            self.bot.pin_chat_message(send.chat.id, send.id)
+
+        self.owner.after_send_answer = after_answer

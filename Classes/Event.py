@@ -1,5 +1,6 @@
 from typing import TypeVar, Type, Generator, Optional
 from db import DB, EventModel
+from repository import EventManager
 
 T = TypeVar('T', bound='Event')
 
@@ -18,7 +19,8 @@ class Event(EventModel):
 
     @classmethod
     def find_events(cls, *args) -> Generator[None, T, None]:
-        res = cls.__session.query().filter(*args)
+        res = cls.__session.query(EventModel).filter(*args).order_by(EventModel.time.desc()).all()
+
         if not res:
             return None
 

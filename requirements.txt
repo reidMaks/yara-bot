@@ -5,3 +5,4 @@ sqlalchemy-utils
 psycopg2-binary
 numpy
 matplotlib
+loguru

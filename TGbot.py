@@ -209,26 +209,13 @@ def send_events(message):
     controller.set_strategy(EventsCommandStrategy)
     controller.send_answer()
 
-#
-# @bot.message_handler(commands=['pin'])
-# def upd_pin_eat(message):
-#     # обновление возможно только в чате в котором команда вызвана в последний раз
-#     # прикрепленное сообщение не хранится в БД и будет сброшено при перезапуске
-#     global PIN_MSG_EAT
-#
-#     time = statistic("statistic,how-long-ago,,eat")
-#     text = f'{eat_time_switcher(time)} {time} назад последний прием пищи'
-#     if PIN_MSG_EAT is None:
-#
-#         if message is None:
-#             return True
-#
-#         send = bot.reply_to(message, text)
-#         bot.pin_chat_message(message.chat.id, send.id)
-#         PIN_MSG_EAT = send
-#     else:
-#         bot.edit_message_text(text, message_id=PIN_MSG_EAT.id,
-#                               chat_id=PIN_MSG_EAT.chat.id)
+
+@bot.message_handler(commands=['pin'])
+def upd_pin_eat(message):
+    controller = MessageController(message, bot)
+    controller.set_strategy(PinCommandStrategy)
+    controller.send_answer()
+
 #
 #
 # @bot.callback_query_handler(func=lambda call: True)

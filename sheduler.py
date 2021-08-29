@@ -1,13 +1,21 @@
 import schedule
 import time
 from threading import Thread
+
+from loguru import logger
 import TGbot
+
+from db import PinnedMessages, DB
 from config import UPD_PIN_INTERVAL
+from BotHelper import last_eat_time_message
 
 
+@logger.catch
 def upd_pin():
-    print(f"{time.strftime('%b %d %Y %H:%M:%S')} DO upd_pin_eat")
-    upd_pin_eat(None)
+    text = last_eat_time_message()
+
+    for pinned in DB().session.query(PinnedMessages).all():
+        TGbot.bot.edit_message_text(text=text, chat_id=pinned.chat_id, message_id=pinned.msg_id)
 
 
 def do_schedule():
