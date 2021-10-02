@@ -141,12 +141,12 @@ class PinCommandStrategy(Strategy):
 
         self.owner.set_answer({"text": last_eat_time_message(), "markup": None})
 
-        def after_answer(self, send):
+        def after_answer(manager, send):
             from db import PinnedMessages
 
             pm = PinnedMessages(send)
             pm.save()
 
-            self.bot.pin_chat_message(send.chat.id, send.id)
+            manager.bot.pin_chat_message(send.chat.id, send.id)
 
         self.owner.after_send_answer = after_answer

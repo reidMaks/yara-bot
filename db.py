@@ -118,5 +118,6 @@ class PinnedMessages(Base):
         self.chat_id = message.chat.id
 
     def save(self):
+        # проверять наличие записей
         self.__session.add(self)
         self.__session.commit()
